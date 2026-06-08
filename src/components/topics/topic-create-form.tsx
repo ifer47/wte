@@ -3,14 +3,17 @@
 import {
   Alert,
   Button,
+  FieldError,
+  Form,
   Input,
   Label,
   Modal,
+  Spinner,
   TextArea,
   TextField,
 } from "@heroui/react";
 import * as actions from "@/actions";
-import { startTransition, useActionState } from "react";
+import { useActionState } from "react";
 
 interface TopicCreateFormProps {
   isOpen: boolean;
@@ -21,15 +24,9 @@ export default function TopicCreateForm({
   isOpen,
   onOpenChange,
 }: TopicCreateFormProps) {
-  const [state, formAction] = useActionState(actions.createTopic, {
-    errors: {},
+  const [state, formAction, isPending] = useActionState(actions.createTopic, {
+    fieldErrors: {},
   });
-
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const formData = new FormData(event.target as HTMLFormElement);
-    startTransition(() => formAction(formData));
-  }
 
   return (
     <Modal.Backdrop isOpen={isOpen} onOpenChange={onOpenChange}>
@@ -39,40 +36,24 @@ export default function TopicCreateForm({
           <Modal.Header>
             <Modal.Heading>创建话题</Modal.Heading>
           </Modal.Header>
-          <form onSubmit={handleSubmit} noValidate>
+          <Form action={formAction} validationErrors={state.fieldErrors}>
             <Modal.Body className="flex flex-col gap-4">
-              <TextField
-                name="name"
-                isInvalid={!!state.errors.name}
-              >
+              <TextField name="name">
                 <Label>名称</Label>
                 <Input placeholder="话题名称" />
-                {state.errors.name && (
-                  <span className="text-xs text-danger">
-                    {state.errors.name.join(", ")}
-                  </span>
-                )}
+                <FieldError />
               </TextField>
 
-              <TextField
-                name="description"
-                isInvalid={!!state.errors.description}
-              >
+              <TextField name="description">
                 <Label>描述</Label>
                 <TextArea placeholder="描述你的话题" rows={4} />
-                {state.errors.description && (
-                  <span className="text-xs text-danger">
-                    {state.errors.description.join(", ")}
-                  </span>
-                )}
+                <FieldError />
               </TextField>
 
-              {state.errors._form && (
+              {state.formError && (
                 <Alert status="danger">
                   <Alert.Content>
-                    <Alert.Description>
-                      {state.errors._form.join(", ")}
-                    </Alert.Description>
+                    <Alert.Description>{state.formError}</Alert.Description>
                   </Alert.Content>
                 </Alert>
               )}
@@ -81,9 +62,16 @@ export default function TopicCreateForm({
               <Button slot="close" variant="ghost">
                 取消
               </Button>
-              <Button type="submit">提交</Button>
+              <Button type="submit" isDisabled={isPending}>
+                {isPending ? (
+                  <>
+                    <Spinner size="sm" color="current" />
+                    处理中…
+                  </>
+                ) : "提交"}
+              </Button>
             </Modal.Footer>
-          </form>
+          </Form>
         </Modal.Dialog>
       </Modal.Container>
     </Modal.Backdrop>

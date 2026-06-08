@@ -1,15 +1,14 @@
 "use server";
 
 import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
-interface CreateTopicFormState {
-  errors: {
-    name?: string[];
-    description?: string[];
-    _form?: string[];
-  };
+export interface CreateTopicFormState {
+  fieldErrors: Record<string, string>;
+  formError?: string;
 }
 
 const createTopicSchema = z.object({
@@ -24,15 +23,22 @@ const createTopicSchema = z.object({
 });
 
 export async function createTopic(
-  prevState: CreateTopicFormState,
+  _prevState: CreateTopicFormState,
   formData: FormData,
 ): Promise<CreateTopicFormState> {
-  const name = formData.get("name");
-  const description = formData.get("description");
-  const result = createTopicSchema.safeParse({ name, description });
+  const result = createTopicSchema.safeParse({
+    name: formData.get("name"),
+    description: formData.get("description"),
+  });
 
   if (!result.success) {
-    return { errors: z.flattenError(result.error).fieldErrors };
+    const { fieldErrors: flat } = z.flattenError(result.error);
+    const fieldErrors = Object.fromEntries(
+      Object.entries(flat)
+        .filter(([, msgs]) => msgs?.length)
+        .map(([key, msgs]) => [key, msgs![0]]),
+    );
+    return { fieldErrors };
   }
 
   const session = await auth.api.getSession({
@@ -40,11 +46,26 @@ export async function createTopic(
   });
 
   if (!session?.user) {
-    return {
-      errors: { _form: ["请先登录再操作。"] },
-    };
+    return { fieldErrors: {}, formError: "请先登录再操作。" };
   }
 
-  // TODO: 实际创建话题的数据库操作
-  return { errors: {} };
+  try {
+    const topic = await db.topic.create({
+      data: {
+        name: result.data.name,
+        description: result.data.description,
+        userId: session.user.id,
+      },
+    });
+    redirect(`/topics/${topic.name}`);
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) throw err;
+    if (err instanceof Error && err.message.includes("Unique constraint")) {
+      return { fieldErrors: { name: "该话题名称已存在，请换一个。" } };
+    }
+    if (err instanceof Error) {
+      return { fieldErrors: {}, formError: err.message };
+    }
+    return { fieldErrors: {}, formError: "创建话题时发生未知错误。" };
+  }
 }
