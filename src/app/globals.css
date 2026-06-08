@@ -6,6 +6,14 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* 标题输入框聚焦时不显示边框 */
+.title-input[data-focused="true"],
+.title-input[data-focus-visible="true"] {
+  border-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
 /* ByteMD 编辑器撑满容器 */
 .bytemd-fullscreen {
   display: flex;
