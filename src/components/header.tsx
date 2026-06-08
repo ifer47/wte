@@ -2,12 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Avatar, Button, Input, Popover, Separator } from "@heroui/react";
+import { Avatar, Button, Input, Popover, Separator, Skeleton } from "@heroui/react";
 import { useSession, signOut } from "@/lib/auth-client";
 import favicon from "@/app/icon.svg";
 
 export default function Header() {
-  const { data: session } = useSession();
+  const { data: session, isPending } = useSession();
 
   return (
     <nav className="sticky top-0 z-40 w-full border-b border-separator bg-background/70 backdrop-blur-lg">
@@ -22,7 +22,9 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-3">
-          {session?.user ? (
+          {isPending ? (
+            <Skeleton className="size-8 rounded-full" />
+          ) : session?.user ? (
             <Popover>
               <Popover.Trigger>
                 <button className="cursor-pointer rounded-full outline-none focus-visible:ring-2 focus-visible:ring-primary">
