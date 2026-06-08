@@ -15,8 +15,8 @@ const body = Noto_Sans_SC({
 });
 
 export const metadata: Metadata = {
-  title: "WTE · 账户",
-  description: "登录或注册你的 WTE 账户",
+  title: "WTE · DISCUSS",
+  description: "WTE 讨论社区",
 };
 
 export default function RootLayout({
