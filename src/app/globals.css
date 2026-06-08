@@ -5,3 +5,47 @@
   --font-sans: var(--font-body);
   --font-mono: var(--font-geist-mono);
 }
+
+/* ByteMD 编辑器撑满容器 */
+.bytemd-fullscreen {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ByteMD 的 Editor 组件会插入一个匿名 div，也需要撑满 */
+.bytemd-fullscreen > * {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.bytemd-fullscreen .bytemd {
+  flex: 1 !important;
+  height: unset !important;
+  min-height: 0;
+  border: none !important;
+  border-radius: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.bytemd-fullscreen .bytemd .bytemd-toolbar {
+  flex-shrink: 0;
+}
+
+.bytemd-fullscreen .bytemd .bytemd-body {
+  flex: 1 !important;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.bytemd-fullscreen .bytemd .bytemd-body .bytemd-editor,
+.bytemd-fullscreen .bytemd .bytemd-body .bytemd-preview {
+  height: 100% !important;
+  overflow-y: auto;
+}
+
+.bytemd-fullscreen .bytemd .bytemd-status {
+  flex-shrink: 0;
+}
